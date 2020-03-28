@@ -1,5 +1,5 @@
 const { performance } = require('perf_hooks');
-
+const { convertMiliseconds, format } = require('./utils');
 /**
 When to chose BFS vs DFS (rules of thumb)?
 
@@ -56,16 +56,6 @@ function generateTree({breath, depth}, generator) {
     return node;
 }
 
-// DFS
-// Start at root (push)
-// has children on edge? yes? continue with edge, no? continue with parent
-
-
-// TESTING!!!!
-const rootNode = generateTree({breath: 2, depth: 20})
-// console.log(JSON.stringify(rootNode, null, 4));
-
-
 // BFS Algorithm
 // Start at root (Queue)
 // Queue all children
@@ -75,6 +65,8 @@ const rootNode = generateTree({breath: 2, depth: 20})
 
 function BFS(sourceNode, destinationId, verbose) {
     verbose && console.log("searching for: ", destinationId);
+    if (sourceNode.id === destinationId)
+        return true;
     const queue = [sourceNode];
     verbose && console.log("queued: ", sourceNode.id)
     while (queue.length) {
@@ -89,10 +81,42 @@ function BFS(sourceNode, destinationId, verbose) {
             return true;
         }
     }
+    return false;
 }
 
-const before = performance.now();
-BFS(rootNode, 123);
-const after = performance.now();
-const duration = after - before;
-console.log("Took: ", duration, "milliseconds");
+
+// DFS
+// Start at root
+// I am? no, push, yes? return true
+// for each children:
+// I am? no, push, yes? return true
+
+// I am? no, push in stack, yes, return true;
+
+function calculateTotalNodes(breath, depth) {
+    return ((Math.pow(breath, depth+1)-1) / (breath-1));
+}
+
+// Build tree
+const breath = 3;
+const depth = 10;
+const rootNode = generateTree({breath, depth})
+const totalNodes = calculateTotalNodes(breath, depth);
+console.log('total nodes: ', totalNodes)
+const nodeToSearch = Math.floor(Math.random() * totalNodes);
+console.log('nodeToSearch: ', nodeToSearch)
+// Run BFS
+let before = performance.now();
+let found = BFS(rootNode, nodeToSearch);
+let after = performance.now();
+let duration = after - before;
+console.log("BFS Took: ", duration, "miliseconds , found: ",found);
+
+process.exit(0)
+
+// Run DFS
+before = performance.now();
+found = DFS(rootNode, nodeToSearch);
+after = performance.now();
+duration = after - before;
+console.log("DFS Took: ", format(convertMiliseconds(duration)), ", found: ",found);
